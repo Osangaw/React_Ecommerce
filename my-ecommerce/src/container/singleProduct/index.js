@@ -52,7 +52,6 @@ const ProductDetails = () => {
         _id: product._id, 
         name: product.name, 
         price: product.price, 
-        // Handle image safely
         image: product.productPictures && product.productPictures.length > 0 
           ? product.productPictures[0].img 
           : product.image 
