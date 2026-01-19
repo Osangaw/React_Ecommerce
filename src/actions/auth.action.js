@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "./axios";
 import { authConstants, cartConstant } from "./constants";
 
 export const signup = (user) => {
@@ -6,7 +6,7 @@ export const signup = (user) => {
         dispatch({ type: authConstants.SIGNUP_REQUEST });
         
         try {
-            const res = await axios.post(`http://localhost:3030/signup`, {
+            const res = await api.post(`/signup`, {
                 ...user
             });
 
@@ -42,7 +42,7 @@ export const login = (user) => {
         try {
             dispatch({ type: authConstants.LOGIN_REQUEST });
 
-            const res = await axios.post("http://localhost:3030/signIn", { ...user });
+            const res = await api.post("/signIn", { ...user });
             
             const data = (res && res.data) ? res.data : res;
 

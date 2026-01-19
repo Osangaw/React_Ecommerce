@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "./axios";
 import { productConstants } from "./constants"; // Check spelling: productConstant vs productConstants
 
 export const getAllProducts = () => {
@@ -7,7 +7,7 @@ export const getAllProducts = () => {
         
         try {
     
-            const res = await axios.get(`http://localhost:3030/product/all`);
+            const res = await api.get(`/product/all`);
             
             console.log("1. RAW PRODUCT RESPONSE:", res);
 
@@ -47,7 +47,7 @@ export const getProductDetails = (productId) => {
     return async (dispatch) => {
         dispatch({ type: productConstants.GET_PRODUCT_DETAILS_REQUEST });
         try {
-            const res = await axios.get(`http://localhost:3030/product/getById/${productId}`);
+            const res = await api.get(`/product/getById/${productId}`);
             
             if (res.status === 200) {
                 dispatch({

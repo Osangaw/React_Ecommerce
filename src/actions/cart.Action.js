@@ -1,17 +1,15 @@
-import axios from "axios";
+import api from "./axios";
 import { cartConstant } from "./constants";
 
 
 export const getCartItems = () => {
   return async (dispatch, getState) => {
     const { auth } = getState();
-
-    // --- SCENARIO A: LOGGED IN USER (Fetch from DB) ---
     if (auth.authenticate) {
       dispatch({ type: cartConstant.CART_REQUEST });
       
       try {
-        const res = await axios.get("http://localhost:3030/cart/get",{
+        const res = await api.get("/cart/get",{
             headers: { Authorization: `Bearer ${auth.token}` }
         })
         
@@ -33,7 +31,6 @@ export const getCartItems = () => {
       }
     } 
     
-    // --- SCENARIO B: GUEST USER (Fetch from LocalStorage) ---
     else {
       const cartItems = localStorage.getItem("cart") 
         ? JSON.parse(localStorage.getItem("cart")) 
@@ -61,7 +58,6 @@ export const addToCart = (product, newQty = 1) => {
     const currentCartItems = cart.cartItems || [];
 
     // --- LOGIC: CHECK IF ITEM EXISTS ---
-    // ✅ CRASH FIX: Use (?.) to safely access _id. Skips corrupted items.
     const existingItemIndex = currentCartItems.findIndex(
       (item) => item.product?._id === product._id
     );
@@ -83,19 +79,16 @@ export const addToCart = (product, newQty = 1) => {
       });
     }
 
-    // --- SCENARIO A: LOGGED IN (Save to DB) ---
     if (auth.authenticate) {
       dispatch({ type: cartConstant.ADD_TO_CART_REQUEST });
       
       try {
-        // ⚠️ CRITICAL FIX: Payload must match req.body.productId
         const payload = {
              productId: product._id, // Direct field
              quantity: newQty        // Direct field
         };
 
-        // ✅ Using the URL from your snippet: /cart/add
-        const res = await axios.post(`http://localhost:3030/cart/add`, payload, {
+        const res = await api.post(`/cart/add`, payload, {
              headers: { Authorization: `Bearer ${auth.token}` }
         });
         
@@ -136,7 +129,7 @@ export const removeCartItem = (payload) => async (dispatch, getState) => {
         data: { productId: payload.productId }, 
       };
 
-      const res = await axios.delete("http://localhost:3030/cart/remove", config);
+      const res = await api.delete("/cart/remove", config);
 
       if (res.status === 200) {
         dispatch({
@@ -175,7 +168,7 @@ export const incrementQuantity = (productId) => async (dispatch, getState) => {
         dispatch({ type: cartConstant.UPDATE_CART_ITEM_QUANTITY_REQUEST });
 
         if (isUserLoggedIn) {
-            await axios.patch("http://localhost:3030/cart/inc", {
+            await api.patch("/cart/inc", {
                 productId,
                 userId: auth.user._id
             }, {
@@ -225,7 +218,7 @@ export const decrementQuantity = (productId) => async (dispatch, getState) => {
         dispatch({ type: cartConstant.UPDATE_CART_ITEM_QUANTITY_REQUEST });
 
         if (isUserLoggedIn) {
-            await axios.patch("http://localhost:3030/cart/dec", {
+            await api.patch("/cart/dec", {
                 productId,
                 userId: auth.user._id
             }, {
