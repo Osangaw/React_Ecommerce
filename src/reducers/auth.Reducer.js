@@ -20,7 +20,8 @@ export default (state = initState, action) => {
            return {
                 ...state,
                 error: null,
-                loading: true
+                loading: true,
+                authenticating: true
             }
 
         case authConstants.LOGIN_SUCCESS:

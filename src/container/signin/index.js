@@ -4,35 +4,33 @@ import {
   Button, 
   TextField, 
   Typography, 
-  Container, 
   Paper, 
   Alert, 
-  Link as MuiLink 
+  Link as MuiLink,
+  CircularProgress,
+  InputAdornment,
+  IconButton
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, Link, useLocation } from "react-router-dom"; // ✅ Import useLocation
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { login } from "../../actions/auth.action";
 
 const Signin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation(); // ✅ Get access to previous navigation state
+  const location = useLocation();
   
   const auth = useSelector((state) => state.auth);
 
-  // ✅ UPDATED REDIRECT LOGIC
   useEffect(() => {
     if (auth.authenticate) {
-      // 1. Check if the user was trying to go somewhere specific (like /cart)
-      //    If not, default to Home ("/")
       const destination = location.state?.from || "/";
-
-      // 2. Navigate there AND send the "welcome" signal
-      //    We keep ...location.state in case there was other data
       navigate(destination, { state: { ...location.state, welcome: true } });
     }
   }, [auth.authenticate, navigate, location.state]);
@@ -58,69 +56,119 @@ const Signin = () => {
     if (error) setError("");
   };
 
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+
   return (
-    <Container maxWidth="xs">
-      <Paper elevation={3} sx={{ padding: 4, marginTop: 8, textAlign: "center", borderRadius: 3 }}>
-        <Typography variant="h4" fontWeight="bold" mb={3} color="#6A1B1A">
-          Sign In
+    // ✅ 1. Layout Wrapper (Matches Signup Page)
+    <Box 
+      sx={{ 
+        minHeight: "100vh", 
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        backgroundColor: "#f1f1f1" // Grey background
+      }}
+    >
+        {/* ✅ 2. Logo Header (Matches Signup Page) */}
+        <Typography 
+            variant="h3" 
+            sx={{ fontFamily: "cursive", fontWeight: "bold", mb: 3, cursor: 'pointer', color: '#333' }}
+            onClick={() => navigate('/')}
+        >
+            MyStore
         </Typography>
 
-        <form onSubmit={handleSubmit}>
-           {/* Show local validation error OR Redux auth error */}
-           {(error || auth.error) && (
-            <Alert sx={{ width: "100%", mb: 2 }} severity="error">
-              {error || auth.error}
-            </Alert>
-          )}
-          
-          <TextField
-            label="Email"
-            fullWidth
-            margin="normal"
-            value={email}
-            onChange={handleInput(setEmail)}
-          />
-          <TextField
-            label="Password"
-            type="password"
-            fullWidth
-            margin="normal"
-            value={password}
-            onChange={handleInput(setPassword)}
-          />
-
-          <Button 
-            type="submit" 
-            variant="contained" 
-            fullWidth 
-            sx={{ mt: 3, bgcolor: "#6A1B1A", py: 1.5, fontWeight: "bold" }}
-            disabled={auth.authenticating}
-          >
-            {auth.authenticating ? "Logging in..." : "Login"}
-          </Button>
-        </form>
-
-        {/* --- Link to Signup --- */}
-        <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-                Don't have an account?
+        {/* ✅ 3. Paper Card */}
+        <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 450, borderRadius: 2 }}>
+            <Typography variant="h5" fontWeight="bold" mb={3} textAlign="center">
+                Sign In
             </Typography>
-            <MuiLink 
-                component={Link} 
-                to="/signup" 
-                underline="hover" 
-                sx={{ 
-                    color: "#6A1B1A", 
-                    fontWeight: "bold",
-                    cursor: "pointer" 
+
+            <form onSubmit={handleSubmit}>
+            {(error || auth.error) && (
+                <Alert sx={{ width: "100%", mb: 2 }} severity="error">
+                {error || auth.error}
+                </Alert>
+            )}
+            
+            <TextField
+                label="Email"
+                fullWidth
+                margin="normal"
+                value={email}
+                onChange={handleInput(setEmail)}
+            />
+
+            <TextField
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                fullWidth
+                margin="normal"
+                value={password}
+                onChange={handleInput(setPassword)}
+                InputProps={{
+                endAdornment: (
+                    <InputAdornment position="end">
+                    <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        edge="end"
+                    >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                    </InputAdornment>
+                ),
                 }}
+            />
+
+            <Button 
+                type="submit" 
+                variant="contained" 
+                fullWidth 
+                sx={{ 
+                    mt: 3, 
+                    bgcolor: "#6A1B1A", 
+                    py: 1.5, 
+                    fontWeight: "bold",
+                    "&:hover": { bgcolor: "#8B2323" }
+                }}
+                disabled={auth.authenticating}
             >
-                Register Here
-            </MuiLink>
+                {auth.authenticating ? (
+                <CircularProgress size={24} sx={{ color: 'white' }} />
+                ) : (
+                "Login"
+                )}
+            </Button>
+            </form>
+
+            <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                    Don't have an account?
+                </Typography>
+                <MuiLink 
+                    component={Link} 
+                    to="/signup" 
+                    underline="hover" 
+                    sx={{ 
+                        color: "#6A1B1A", 
+                        fontWeight: "bold",
+                        cursor: "pointer" 
+                    }}
+                >
+                    Register Here
+                </MuiLink>
+            </Box>
+        </Paper>
+
+        <Box sx={{ mt: 4, display: 'flex', gap: 3 }}>
+            <Typography variant="caption" color="text.secondary">Conditions of Use</Typography>
+            <Typography variant="caption" color="text.secondary">Privacy Notice</Typography>
+            <Typography variant="caption" color="text.secondary">Help</Typography>
         </Box>
 
-      </Paper>
-    </Container>
+    </Box>
   );
 };
 
