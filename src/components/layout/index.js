@@ -15,6 +15,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom"; 
 import { signout } from "../../actions/auth.action";
+import { searchProducts } from "../../actions/product.Action";
 
 const Layout = ({ children }) => {
   const navigate = useNavigate();
@@ -32,17 +33,14 @@ const Layout = ({ children }) => {
   const [welcomeOpen, setWelcomeOpen] = useState(false);
   const [userName, setUserName] = useState("");
 
-  // 3. Listen for Login Success Signal
+  // ✅ 3. Search State
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Listen for Login Success Signal
   useEffect(() => {
-    // If we have the 'welcome' flag in state AND the user is actually logged in
     if (location.state?.welcome && auth.user) {
-      
-      // ✅ FIX: Changed 'firstName' to 'name' to match your backend
       setUserName(auth.user.name || "User");
-      
       setWelcomeOpen(true);
-      
-      // Clean the history state so the popup doesn't show again on refresh
       window.history.replaceState({}, document.title);
     }
   }, [location.state, auth.user]);
@@ -51,16 +49,26 @@ const Layout = ({ children }) => {
     setWelcomeOpen(false);
   };
 
-  // 4. Logout Handler
   const logout = () => {
     dispatch(signout());
     navigate('/signin');
   };
 
+  // ✅ 4. Search Handler
+  const onSearch = (e) => {
+    // Check if key is Enter OR if it's a click event
+    if (e.key === "Enter" || e.type === "click") {
+      if (searchTerm.trim()) {
+        dispatch(searchProducts(searchTerm));
+        navigate('/');
+      }
+    }
+  };
+
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#fafafa" }}>
       
-      {/* ✅ GLOBAL WELCOME SNACKBAR */}
+      {/* GLOBAL WELCOME SNACKBAR */}
       <Snackbar
         open={welcomeOpen}
         autoHideDuration={4000} 
@@ -100,6 +108,7 @@ const Layout = ({ children }) => {
           MyStore
         </Typography>
 
+        {/* ✅ Search Bar Box */}
         <Box
           sx={{
             display: "flex",
@@ -111,15 +120,23 @@ const Layout = ({ children }) => {
             display: { xs: "none", md: "flex" } 
           }}
         >
-          <InputBase placeholder="Search products..." sx={{ flex: 1 }} />
-          <SearchIcon sx={{ color: "gray" }} />
+          <InputBase 
+            placeholder="Search products..." 
+            sx={{ flex: 1 }} 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={onSearch} // Listen for Enter key
+          />
+          <SearchIcon 
+            sx={{ color: "gray", cursor: 'pointer' }} 
+            onClick={onSearch} // Listen for Click
+          />
         </Box>
 
         <Box sx={{ display: "flex", gap: 3, alignItems: "center" }}>
           
           {/* CONDITIONAL RENDERING */}
           {auth.authenticate ? (
-            // --- VIEW FOR LOGGED IN USERS ---
             <Typography 
                 sx={{ cursor: "pointer", fontFamily: "cursive", color: "#d32f2f" }} 
                 onClick={logout}
@@ -127,7 +144,6 @@ const Layout = ({ children }) => {
               Logout <LogoutIcon sx={{ verticalAlign: "middle", ml: 0.5, fontSize: 18 }} />
             </Typography>
           ) : (
-            // --- VIEW FOR GUESTS ---
             <>
                 <Typography sx={{ cursor: "pointer", fontFamily: "cursive" }} onClick={() => navigate("/signup")}>
                     Sign Up <LockOpenIcon sx={{ verticalAlign: "middle", ml: 0.5, fontSize: 18 }} />

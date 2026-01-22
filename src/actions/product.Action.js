@@ -13,7 +13,6 @@ export const getAllProducts = () => {
 
             const data = (res && res.data) ? res.data : res;
 
-           // console.log("2. EXTRACTED DATA:", data);
 
             const products = data.products || (Array.isArray(data) ? data : []);
 
@@ -64,3 +63,32 @@ export const getProductDetails = (productId) => {
         }
     }
 }
+
+
+export const searchProducts = (key) => {
+    return async (dispatch) => {
+        
+        dispatch({ type: productConstants.SEARCH_PRODUCT_REQUEST });
+
+        try {
+            const res = await api.get(`/product/search/${key}`);
+
+            if (res.status === 200) {
+                dispatch({
+                    type: productConstants.SEARCH_PRODUCT_SUCCESS,
+                    payload: { products: res.data }
+                });
+            }
+        } catch (error) {
+            console.log("Search Error:", error);
+            dispatch({
+                type: productConstants.SEARCH_PRODUCT_FAILURE,
+                payload: { 
+                    error: error.response && error.response.data.message 
+                        ? error.response.data.message 
+                        : error.message 
+                }
+            });
+        }
+    };
+};
