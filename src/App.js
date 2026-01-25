@@ -6,6 +6,7 @@ import SignUp from "./container/signup";
 import ProductDetails from "./container/singleProduct";
 import Cart from "./container/cart";
 import Checkout from "./container/checkout";
+import ResetPassword from "./container/reset-password";
 
 window.store = store;
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Route path="/product/:productId" element={<ProductDetails />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         
       </Routes>
     </div>

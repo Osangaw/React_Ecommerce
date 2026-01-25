@@ -59,7 +59,6 @@ const Signin = () => {
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
   return (
-    // ✅ 1. Layout Wrapper (Matches Signup Page)
     <Box 
       sx={{ 
         minHeight: "100vh", 
@@ -67,10 +66,9 @@ const Signin = () => {
         flexDirection: "column", 
         alignItems: "center", 
         justifyContent: "center", 
-        backgroundColor: "#f1f1f1" // Grey background
+        backgroundColor: "#f1f1f1" 
       }}
     >
-        {/* ✅ 2. Logo Header (Matches Signup Page) */}
         <Typography 
             variant="h3" 
             sx={{ fontFamily: "cursive", fontWeight: "bold", mb: 3, cursor: 'pointer', color: '#333' }}
@@ -79,7 +77,6 @@ const Signin = () => {
             MyStore
         </Typography>
 
-        {/* ✅ 3. Paper Card */}
         <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 450, borderRadius: 2 }}>
             <Typography variant="h5" fontWeight="bold" mb={3} textAlign="center">
                 Sign In
@@ -121,6 +118,19 @@ const Signin = () => {
                 ),
                 }}
             />
+
+            {/* ✅ NEW: Forgot Password Link */}
+            <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
+                <MuiLink 
+                    component={Link} 
+                    to="/reset-password" 
+                    underline="hover" 
+                    variant="body2"
+                    sx={{ color: "#1976d2", fontWeight: "bold" }}
+                >
+                    Forgot Password?
+                </MuiLink>
+            </Box>
 
             <Button 
                 type="submit" 

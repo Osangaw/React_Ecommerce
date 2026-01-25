@@ -122,3 +122,27 @@ export const signout = () => {
         dispatch({ type: cartConstant.RESET_CART });
     }
 }
+
+export const forgotPassword = (email) => {
+    return async (dispatch) => {
+        try {
+            const res = await api.post("/forgot-password", { email });
+            return res.data;
+        } catch (error) {
+            console.log("Forgot Password Error", error);
+            throw error.response ? error.response.data : { message: "Something went wrong" };
+        }
+    };
+};
+
+export const resetPassword = (data) => {
+    return async (dispatch) => {
+        try {
+            const res = await api.post("/reset-password", data);
+            return res.data;
+        } catch (error) {
+            console.log("Reset Password Error", error);
+            throw error.response ? error.response.data : { message: "Something went wrong" };
+        }
+    };
+};
