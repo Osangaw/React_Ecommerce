@@ -42,7 +42,7 @@ export const login = (user) => {
         try {
             dispatch({ type: authConstants.LOGIN_REQUEST });
 
-            const res = await api.post("/signIn", { ...user });
+            const res = await api.post("/signin", { ...user });
             
             const data = (res && res.data) ? res.data : res;
 

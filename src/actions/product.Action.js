@@ -76,8 +76,10 @@ export const searchProducts = (key) => {
             if (res.status === 200) {
                 dispatch({
                     type: productConstants.SEARCH_PRODUCT_SUCCESS,
-                    payload: { products: res.data }
-                });
+                    payload: { products: res.data }                    
+                });   
+                                 console.log(res.data);
+
             }
         } catch (error) {
             console.log("Search Error:", error);
