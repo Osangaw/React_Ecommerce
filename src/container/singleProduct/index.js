@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { Box, Typography, Button, Grid, Paper, Divider, CircularProgress } from "@mui/material";
@@ -13,18 +13,32 @@ const ProductDetails = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // ✅ Select from 'productDetails' in Redux, not the general list
   const product = useSelector((state) => state.product.productDetails);
   const loading = useSelector((state) => state.product.loading);
 
-  // ✅ Fetch data from DB when the component mounts
+  // ✅ STATE: Track which image is currently displayed
+  const [activeImage, setActiveImage] = useState("");
+
   useEffect(() => {
     if (productId) {
       dispatch(getProductDetails(productId));
     }
   }, [dispatch, productId]);
 
-  // Loading State
+  // ✅ EFFECT: Set the default image when product loads
+  useEffect(() => {
+    if (product) {
+        // Priority 1: First image from the gallery array
+        if (product.images && product.images.length > 0) {
+            setActiveImage(product.images[0].img);
+        } 
+        // Priority 2: Legacy/Single image field
+        else if (product.image) {
+            setActiveImage(product.image);
+        }
+    }
+  }, [product]);
+
   if (loading) {
     return (
       <Layout>
@@ -35,7 +49,6 @@ const ProductDetails = () => {
     );
   }
 
-  // Error/Empty State
   if (!product || !product._id) {
     return (
       <Layout>
@@ -52,18 +65,12 @@ const ProductDetails = () => {
         _id: product._id, 
         name: product.name, 
         price: product.price, 
-        image: product.productPictures && product.productPictures.length > 0 
-          ? product.productPictures[0].img 
-          : product.image 
+        // Use the main image for the cart thumbnail
+        image: activeImage
     };
     dispatch(addToCart(item));
     navigate('/cart');
   };
-
-  // Helper to get the main image safely
-  const displayImage = product.productPictures && product.productPictures.length > 0 
-      ? product.productPictures[0].img 
-      : (product.image || "https://via.placeholder.com/400");
 
   return (
     <Layout>
@@ -80,8 +87,10 @@ const ProductDetails = () => {
             </Button>
 
             <Grid container spacing={6}>
-                {/* LEFT: Product Image */}
+                
+                {/* LEFT COLUMN: Images */}
                 <Grid item xs={12} md={6}>
+                    {/* 1. Main Large Image */}
                     <Box sx={{ 
                         height: '400px', 
                         display: 'flex', 
@@ -90,18 +99,48 @@ const ProductDetails = () => {
                         border: '1px solid #f0f0f0', 
                         borderRadius: 2,
                         bgcolor: '#fafafa',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
+                        mb: 2 // Space below main image
                     }}>
-                    <img
-                        src={displayImage}
-                        alt={product.name}
-                        style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-                    />
+                        <img
+                            src={activeImage || "https://via.placeholder.com/400"}
+                            alt={product.name}
+                            style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                        />
                     </Box>
+
+                    {/* 2. Thumbnail Gallery (Only shows if > 1 image) */}
+                    {product.images && product.images.length > 1 && (
+                        <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', py: 1 }}>
+                            {product.images.map((imgObj, index) => (
+                                <Box
+                                    key={index}
+                                    onClick={() => setActiveImage(imgObj.img)}
+                                    sx={{
+                                        width: 70,
+                                        height: 70,
+                                        border: activeImage === imgObj.img ? '2px solid #6A1B1A' : '1px solid #ddd',
+                                        borderRadius: 2,
+                                        cursor: 'pointer',
+                                        overflow: 'hidden',
+                                        opacity: activeImage === imgObj.img ? 1 : 0.6,
+                                        transition: 'all 0.2s',
+                                        '&:hover': { opacity: 1 }
+                                    }}
+                                >
+                                    <img 
+                                        src={imgObj.img} 
+                                        alt={`thumb-${index}`} 
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                    />
+                                </Box>
+                            ))}
+                        </Box>
+                    )}
                 </Grid>
 
-                {/* RIGHT: Product Details */}
-                <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                {/* RIGHT COLUMN: Details */}
+                <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
                     <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, fontFamily: 'sans-serif' }}>
                         {product.name}
                     </Typography>

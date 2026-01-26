@@ -94,3 +94,75 @@ export const searchProducts = (key) => {
         }
     };
 };
+// ✅ NEW: Add Product (Supports Multiple Images)
+export const addProduct = (form) => {
+    return async (dispatch) => {
+        dispatch({ type: productConstants.ADD_PRODUCT_REQUEST });
+        try {
+            // 'form' must be a FormData object containing 'productPicture' fields
+            const res = await api.post(`/product/add`, form);
+
+            if (res.status === 201) {
+                dispatch({
+                    type: productConstants.ADD_PRODUCT_SUCCESS,
+                    payload: { product: res.data.newProduct }
+                });
+                // Optional: Refresh the list after adding
+                dispatch(getAllProducts());
+            }
+        } catch (error) {
+            console.log("Add Product Error:", error);
+            dispatch({
+                type: productConstants.ADD_PRODUCT_FAILURE,
+                payload: { error: error.response ? error.response.data.message : error.message }
+            });
+        }
+    };
+};
+
+// ✅ NEW: Update Product (Supports changing Text OR Images)
+export const updateProduct = (id, form) => {
+    return async (dispatch) => {
+        dispatch({ type: productConstants.UPDATE_PRODUCT_REQUEST });
+        try {
+            const res = await api.patch(`/product/update/${id}`, form);
+
+            if (res.status === 200) {
+                dispatch({
+                    type: productConstants.UPDATE_PRODUCT_SUCCESS,
+                    payload: { product: res.data.product }
+                });
+                // Refresh details to show new changes immediately
+                dispatch(getProductDetails(id));
+            }
+        } catch (error) {
+            console.log("Update Product Error:", error);
+            dispatch({
+                type: productConstants.UPDATE_PRODUCT_FAILURE,
+                payload: { error: error.response ? error.response.data.message : error.message }
+            });
+        }
+    };
+};
+
+// ✅ NEW: Delete Product
+export const deleteProduct = (id) => {
+    return async (dispatch) => {
+        dispatch({ type: productConstants.DELETE_PRODUCT_REQUEST });
+        try {
+            const res = await api.delete(`/product/delete/${id}`);
+            if (res.status === 202) {
+                dispatch({
+                    type: productConstants.DELETE_PRODUCT_SUCCESS,
+                    payload: { id } 
+                });
+            }
+        } catch (error) {
+            console.log("Delete Error:", error);
+            dispatch({
+                type: productConstants.DELETE_PRODUCT_FAILURE,
+                payload: { error: error.response ? error.response.data.message : error.message }
+            });
+        }
+    }
+};
