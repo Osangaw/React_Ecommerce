@@ -24,6 +24,8 @@ export const getAddress = () => {
                     payload: { address: addressList }
                 });
             }
+            console.log("addresses;",res.data);
+            
         } catch (error) {
             console.log("Get Address Error:", error);
             dispatch({ 
