@@ -79,7 +79,7 @@ const AddProduct = () => {
     }
 
     dispatch(addProduct(form)).then(() => {
-        navigate('/'); 
+       // navigate('/'); 
     });
   };
 
