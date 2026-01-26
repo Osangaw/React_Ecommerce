@@ -15,7 +15,7 @@ export const getAddress = () => {
                 }
             };
 
-            const res = await api.get('http://localhost:3030/address/get', config); 
+            const res = await api.get('/address/get', config); 
             
             if (res.status === 200) {
                 const addressList = res.data.addresses; 
@@ -47,8 +47,7 @@ export const addAddress = (form) => {
           Authorization: `Bearer ${token}`,
         },
       };
-      const res = await api.post(
-        "http://localhost:3030/address/add",
+      const res = await api.post("/address/add",
         form,
         config
       );
@@ -80,7 +79,7 @@ export const deleteAddress = (payload) => {
     console.log("userId:", userId);
     
     try {
-      const res = await api.delete("http://localhost:3030/address/delete", {
+      const res = await api.delete("/address/delete", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
