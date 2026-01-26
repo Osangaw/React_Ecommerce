@@ -8,7 +8,7 @@ import Cart from "./container/cart";
 import Checkout from "./container/checkout";
 import ResetPassword from "./container/reset-password";
 import AddProduct from "./container/addProduct";
-import EditProduct from "./components/editProduct";
+import EditProduct from "./container/editProduct";
 
 window.store = store;
 function App() {

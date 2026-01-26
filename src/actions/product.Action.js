@@ -101,6 +101,8 @@ export const addProduct = (form) => {
         try {
             // 'form' must be a FormData object containing 'productPicture' fields
             const res = await api.post(`/product/add`, form);
+            console.log('form;', form);
+            
 
             if (res.status === 201) {
                 dispatch({
