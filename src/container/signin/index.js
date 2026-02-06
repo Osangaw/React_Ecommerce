@@ -9,7 +9,8 @@ import {
   Link as MuiLink,
   CircularProgress,
   InputAdornment,
-  IconButton
+  IconButton,
+  Container
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
@@ -66,18 +67,37 @@ const Signin = () => {
         flexDirection: "column", 
         alignItems: "center", 
         justifyContent: "center", 
-        backgroundColor: "#f1f1f1" 
+        backgroundColor: { xs: "white", sm: "#f1f1f1" } 
       }}
     >
+        {/* Logo */}
         <Typography 
             variant="h3" 
-            sx={{ fontFamily: "cursive", fontWeight: "bold", mb: 3, cursor: 'pointer', color: '#333' }}
+            sx={{ 
+                fontFamily: "cursive", 
+                fontWeight: "bold", 
+                mb: { xs: 4, sm: 3 }, // More space on mobile
+                mt: { xs: 4, sm: 0 }, // Top margin on mobile
+                cursor: 'pointer', 
+                color: '#333',
+                fontSize: { xs: '2.5rem', sm: '3rem' } // Smaller font on mobile
+            }}
             onClick={() => navigate('/')}
         >
             MyStore
         </Typography>
 
-        <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 450, borderRadius: 2 }}>
+        <Paper 
+            elevation={3} 
+            sx={{ 
+                p: { xs: 3, sm: 4 }, // Reduced padding on mobile
+                width: "90%", 
+                maxWidth: 450, 
+                borderRadius: { xs: 0, sm: 2 }, // No border radius on mobile (full screen feel)
+                boxShadow: { xs: 'none', sm: 3 }, // Remove shadow on mobile
+                bgcolor: { xs: 'transparent', sm: 'white' }
+            }}
+        >
             <Typography variant="h5" fontWeight="bold" mb={3} textAlign="center">
                 Sign In
             </Typography>
@@ -119,7 +139,7 @@ const Signin = () => {
                 }}
             />
 
-            {/* ✅ NEW: Forgot Password Link */}
+            {/* Forgot Password Link */}
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
                 <MuiLink 
                     component={Link} 
@@ -136,6 +156,7 @@ const Signin = () => {
                 type="submit" 
                 variant="contained" 
                 fullWidth 
+                size="large" // Larger touch target for mobile
                 sx={{ 
                     mt: 3, 
                     bgcolor: "#6A1B1A", 
@@ -164,7 +185,8 @@ const Signin = () => {
                     sx={{ 
                         color: "#6A1B1A", 
                         fontWeight: "bold",
-                        cursor: "pointer" 
+                        cursor: "pointer",
+                        fontSize: '1rem'
                     }}
                 >
                     Register Here
@@ -172,7 +194,8 @@ const Signin = () => {
             </Box>
         </Paper>
 
-        <Box sx={{ mt: 4, display: 'flex', gap: 3 }}>
+        {/* Footer Links - Hide on very small screens if needed, or stack them */}
+        <Box sx={{ mt: 4, mb: 4, display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
             <Typography variant="caption" color="text.secondary">Conditions of Use</Typography>
             <Typography variant="caption" color="text.secondary">Privacy Notice</Typography>
             <Typography variant="caption" color="text.secondary">Help</Typography>

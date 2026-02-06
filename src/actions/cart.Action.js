@@ -15,7 +15,7 @@ export const getCartItems = () => {
         
         if (res.status === 200) {
          const cartItems = res.data.cart ? res.data.cart.items : [];
-          console.log("Cart fetched from DB:", cartItems);
+        //  console.log("Cart fetched from DB:", cartItems);
 
           dispatch({
             type: cartConstant.CART_SUCCESS,
@@ -122,6 +122,8 @@ export const removeCartItem = (payload) => async (dispatch, getState) => {
   try {
     dispatch({ type: cartConstant.REMOVE_FROM_CART_REQUEST });
     const { auth } = getState();
+    console.log("payload:", payload);
+    
 
     if (auth.authenticate) {
       const config = {
@@ -136,6 +138,7 @@ export const removeCartItem = (payload) => async (dispatch, getState) => {
           type: cartConstant.REMOVE_FROM_CART_SUCCESS,
           payload: { items: res.data.cart.items },
         });
+        dispatch(getCartItems());
       }
     } else {
       // Guest remove

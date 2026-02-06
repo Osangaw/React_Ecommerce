@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { Box, Typography, Button, Grid, Paper, Divider, CircularProgress } from "@mui/material";
+import { Box, Typography, Button, Grid, Paper, Divider, CircularProgress, Chip } from "@mui/material";
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import BlockIcon from '@mui/icons-material/Block';
 import Layout from "../../components/layout";
 import { addToCart } from "../../actions/cart.Action";
 import { getProductDetails } from "../../actions/product.Action";
@@ -13,10 +14,14 @@ const ProductDetails = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Redux State
   const product = useSelector((state) => state.product.productDetails);
   const loading = useSelector((state) => state.product.loading);
+  const auth = useSelector((state) => state.auth); // ✅ Get Auth State
 
-  // ✅ STATE: Track which image is currently displayed
+  // Check if Admin
+  const isAdmin = auth.user?.role === 'admin';
+
   const [activeImage, setActiveImage] = useState("");
 
   useEffect(() => {
@@ -25,15 +30,11 @@ const ProductDetails = () => {
     }
   }, [dispatch, productId]);
 
-  // ✅ EFFECT: Set the default image when product loads
   useEffect(() => {
     if (product) {
-        // Priority 1: First image from the gallery array
         if (product.images && product.images.length > 0) {
             setActiveImage(product.images[0].img);
-        } 
-        // Priority 2: Legacy/Single image field
-        else if (product.image) {
+        } else if (product.image) {
             setActiveImage(product.image);
         }
     }
@@ -61,11 +62,13 @@ const ProductDetails = () => {
   }
 
   const handleAddToCart = () => {
+    // Double check to prevent admins from forcing it
+    if (isAdmin) return; 
+
     const item = { 
         _id: product._id, 
         name: product.name, 
         price: product.price, 
-        // Use the main image for the cart thumbnail
         image: activeImage
     };
     dispatch(addToCart(item));
@@ -74,9 +77,9 @@ const ProductDetails = () => {
 
   return (
     <Layout>
-      <Box sx={{ p: 4, minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: "center" }}>
+      <Box sx={{ p: 1, minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: "center" }}>
         
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 4, width: '100%', maxWidth: '1000px' }}>
+        <Paper elevation={3} sx={{ p: 2, borderRadius: 4, width: '100%', maxWidth: '1000px' }}>
             
             <Button 
                 startIcon={<ArrowBackIcon />} 
@@ -88,9 +91,8 @@ const ProductDetails = () => {
 
             <Grid container spacing={6}>
                 
-                {/* LEFT COLUMN: Images */}
+                {/* LEFT: Images */}
                 <Grid item xs={12} md={6}>
-                    {/* 1. Main Large Image */}
                     <Box sx={{ 
                         height: '400px', 
                         display: 'flex', 
@@ -100,16 +102,15 @@ const ProductDetails = () => {
                         borderRadius: 2,
                         bgcolor: '#fafafa',
                         overflow: 'hidden',
-                        mb: 2 // Space below main image
+                        mb: 2
                     }}>
                         <img
                             src={activeImage || "https://via.placeholder.com/400"}
                             alt={product.name}
-                            style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
+                            style={{ maxHeight: '90%', maxWidth: '90%', objectFit: 'contain' }}
                         />
                     </Box>
 
-                    {/* 2. Thumbnail Gallery (Only shows if > 1 image) */}
                     {product.images && product.images.length > 1 && (
                         <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', py: 1 }}>
                             {product.images.map((imgObj, index) => (
@@ -124,29 +125,23 @@ const ProductDetails = () => {
                                         cursor: 'pointer',
                                         overflow: 'hidden',
                                         opacity: activeImage === imgObj.img ? 1 : 0.6,
-                                        transition: 'all 0.2s',
-                                        '&:hover': { opacity: 1 }
                                     }}
                                 >
-                                    <img 
-                                        src={imgObj.img} 
-                                        alt={`thumb-${index}`} 
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                                    />
+                                    <img src={imgObj.img} alt="thumb" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 </Box>
                             ))}
                         </Box>
                     )}
                 </Grid>
 
-                {/* RIGHT COLUMN: Details */}
+                {/* RIGHT: Details */}
                 <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, fontFamily: 'sans-serif' }}>
+                    <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>
                         {product.name}
                     </Typography>
                     
                     <Typography variant="h4" color="green" sx={{ fontWeight: 'bold', mb: 3 }}>
-                        ₦{product.price}
+                        ₦{product.price.toLocaleString()}
                     </Typography>
 
                     <Divider sx={{ mb: 3 }} />
@@ -155,23 +150,41 @@ const ProductDetails = () => {
                         {product.description || "No description available."}
                     </Typography>
 
+                    {/* ✅ CONDITIONAL BUTTON RENDERING */}
                     <Box sx={{ display: 'flex', gap: 2, mt: 'auto' }}>
-                        <Button
-                            variant="contained"
-                            size="large"
-                            fullWidth
-                            startIcon={<ShoppingCartIcon />}
-                            onClick={handleAddToCart}
-                            sx={{
-                                bgcolor: '#6A1B1A',
-                                '&:hover': { bgcolor: '#8B2323' },
-                                fontWeight: 'bold',
-                                py: 1.5,
-                                fontSize: '1.1rem'
-                            }}
-                        >
-                            Add to Cart
-                        </Button>
+                        {!isAdmin ? (
+                            <Button
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                startIcon={<ShoppingCartIcon />}
+                                onClick={handleAddToCart}
+                                sx={{
+                                    bgcolor: '#6A1B1A',
+                                    '&:hover': { bgcolor: '#8B2323' },
+                                    fontWeight: 'bold',
+                                    py: 1.5,
+                                }}
+                            >
+                                Add to Cart
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="outlined"
+                                size="large"
+                                fullWidth
+                                disabled
+                                startIcon={<BlockIcon />}
+                                sx={{
+                                    fontWeight: 'bold',
+                                    py: 1.5,
+                                    borderColor: '#999',
+                                    color: '#999 !important'
+                                }}
+                            >
+                                Admin View Only
+                            </Button>
+                        )}
                     </Box>
                 </Grid>
             </Grid>

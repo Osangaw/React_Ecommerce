@@ -79,13 +79,13 @@ const AddProduct = () => {
     }
 
     dispatch(addProduct(form)).then(() => {
-       // navigate('/'); 
+       navigate('/'); 
     });
   };
 
   return (
     <Layout>
-      <Box sx={{ minHeight: "90vh", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "#f1f1f1", py: 5 }}>
+      <Box sx={{ minHeight: "70vh", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "#f1f1f1", py: 5 }}>
         <Container maxWidth="md">
           <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
             

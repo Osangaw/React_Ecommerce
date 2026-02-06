@@ -1,5 +1,6 @@
 import api from "./axios";
 import { authConstants, cartConstant } from "./constants";
+import { addToCart, getCartItems } from "./cart.Action"; 
 
 export const signup = (user) => {
     return async (dispatch) => {
@@ -37,70 +38,49 @@ export const signup = (user) => {
 };
 
 export const login = (user) => {
-    return async (dispatch) => {
+  return async (dispatch) => {
+    dispatch({ type: authConstants.LOGIN_REQUEST });
 
-        try {
-            dispatch({ type: authConstants.LOGIN_REQUEST });
+    try {
+      const res = await api.post("/signin", { ...user });
 
-            const res = await api.post("/signin", { ...user });
-            
-            const data = (res && res.data) ? res.data : res;
+      if (res.status === 200) {
+        const { token, user } = res.data;
 
-            if (data && data.token) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
 
-                const { token, user } = data;
-                console.log('User Data:', user);
-                
+        await mergeCart(token);
 
-                localStorage.setItem("token", token);
-                localStorage.setItem("user", JSON.stringify(user));
-
-                dispatch({
-                    type: authConstants.LOGIN_SUCCESS,
-                    payload: { token, user }
-                });
-                
-                console.log("4. DISPATCH SUCCESS FIRED");
-            } else {
-                console.log("3. NO TOKEN FOUND IN DATA");
-                dispatch({
-                    type: authConstants.LOGIN_FAILURE,
-                    payload: { error: "Server response missing token" }
-                });
-            }
-
-        } catch (error) {
-            console.log("X. LOGIN ERROR:", error);
-            
-            // Safe Error Handling
-            const errorMessage = error.response && error.response.data && error.response.data.message
-                ? error.response.data.message
-                : error.message;
-
-            dispatch({
-                type: authConstants.LOGIN_FAILURE,
-                payload: { error: errorMessage }
-            });
-        }
-    };
+        dispatch({
+          type: authConstants.LOGIN_SUCCESS,
+          payload: { token, user },
+        });
+        
+      }
+    } catch (error) {
+      console.log("Login Action Error:", error);
+      dispatch({
+        type: authConstants.LOGIN_FAILURE,
+        payload: { error: error.response ? error.response.data.error : "Login Failed" },
+      });
+    }
+  };
 };
- 
+
 export const isUserLoggedIn = () => {
-    return async (dispatch) => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            const user = JSON.parse(localStorage.getItem("user"));
-            dispatch({
-                type: authConstants.LOGIN_SUCCESS,
-                payload: { token, user }
-            });
-        } else {
-            dispatch({
-                type: authConstants.LOGIN_FAILURE,
-                payload: { error: "Failed to login" }
-            });
-        }
-    };
+  return async (dispatch) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const user = JSON.parse(localStorage.getItem("user"));
+      dispatch({
+        type: authConstants.LOGIN_SUCCESS,
+        payload: { token, user },
+      });
+    } else {
+     // console.log("No token found, user is Guest.");
+    }
+  };
 };
 
 export const signout = () => {
@@ -145,4 +125,36 @@ export const resetPassword = (data) => {
             throw error.response ? error.response.data : { message: "Something went wrong" };
         }
     };
+};
+
+const mergeCart = async (token) => {
+  const localCart = localStorage.getItem("cart") 
+    ? JSON.parse(localStorage.getItem("cart")) 
+    : [];
+
+  if (localCart.length > 0) {
+    console.log("Merging guest cart...", localCart);
+    
+    const itemsToSync = localCart.map(item => ({
+        product: item.product._id || item.product, 
+        quantity: item.quantity
+    }));
+
+    try {
+      await api.post("/cart/add", 
+        { cartItems: itemsToSync }, 
+        { headers: { Authorization: `Bearer ${token}` } } 
+      );
+
+  
+      localStorage.removeItem("cart");
+      console.log("Cart merged successfully");
+      return true;
+
+    } catch (error) {
+      console.log("Cart merge failed:", error);
+      return false;
+    }
+  }
+  return false;
 };

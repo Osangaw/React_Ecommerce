@@ -4,13 +4,16 @@ import {
   TextField, 
   Box, 
   Button, 
-  Grid, 
   Paper, 
   CircularProgress, 
-  Alert 
+  Alert,
+  Link as MuiLink,
+  InputAdornment,
+  IconButton
 } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { signup } from "../../actions/auth.action";
 
 const SignUp = () => {
@@ -18,30 +21,35 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState("");
   
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
   const auth = useSelector((state) => state.auth);
 
-  // ✅ 2. Auto-Redirect Logic (No more Alerts)
   useEffect(() => {
-    if (!auth.loading) {
-      // If we have a success message or authentication is true
-      if (auth.message?.toLowerCase().includes("success") || auth.authenticate) {
-        // Small delay (500ms) so user briefly sees the success state, then move to login
+    if (!auth.loading && isSubmitting) {
+      if (auth.message?.toLowerCase().includes("success")) {
         const timer = setTimeout(() => {
            navigate("/signin", { replace: true });
         }, 500);
         return () => clearTimeout(timer);
       }
     }
-  }, [auth.loading, auth.message, auth.authenticate, navigate]);
+  }, [auth.loading, auth.message, isSubmitting, navigate]);
+
+  useEffect(() => {
+     if (auth.error) {
+         setIsSubmitting(false);
+     }
+  }, [auth.error]);
 
   const userSignup = (e) => {
     e.preventDefault();
-    setLocalError(""); // Clear previous errors
+    setLocalError("");
 
     if (!name || !email || !password) {
       setLocalError("All fields are required");
@@ -53,14 +61,13 @@ const SignUp = () => {
       return;
     }
 
-    const user = { 
-      name, 
-      email, 
-      phoneNumber, 
-      password 
-    };
+    const user = { name, email, phoneNumber, password };
+    
+    setIsSubmitting(true);
     dispatch(signup(user));
   };
+
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
 
   return (
     <Box 
@@ -70,95 +77,110 @@ const SignUp = () => {
         flexDirection: "column", 
         alignItems: "center", 
         justifyContent: "center", 
-        backgroundColor: "#f1f1f1" 
+        backgroundColor: { xs: "white", sm: "#f1f1f1" } 
       }}
     >
-      
-      {/* Logo Header */}
+      {/* Logo */}
       <Typography 
         variant="h3" 
-        sx={{ fontFamily: "cursive", fontWeight: "bold", mb: 3, cursor: 'pointer', color: '#333' }}
+        sx={{ 
+            fontFamily: "cursive", 
+            fontWeight: "bold", 
+            mb: { xs: 3, sm: 3 }, 
+            mt: { xs: 2, sm: 0 }, 
+            cursor: 'pointer', 
+            color: '#333',
+            fontSize: { xs: '2.5rem', sm: '3rem' } 
+        }}
         onClick={() => navigate('/')}
       >
         MyStore
       </Typography>
 
-      <Paper elevation={3} sx={{ p: 4, width: "100%", maxWidth: 450, borderRadius: 2 }}>
-        {/* ✅ 3. Fixed Title */}
-        <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: "bold" }}>
-          Sign Up
+      <Paper 
+        elevation={3} 
+        sx={{ 
+            p: { xs: 3, sm: 4 }, 
+            width: "90%", 
+            maxWidth: 450, 
+            borderRadius: { xs: 0, sm: 2 }, 
+            boxShadow: { xs: 'none', sm: 3 }, 
+            bgcolor: { xs: 'transparent', sm: 'white' }
+        }}
+      >
+        <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: "bold", textAlign: 'center' }}>
+          Create Account
         </Typography>
 
         <Box component="form" onSubmit={userSignup}>
           
-          {/* Show Errors (Local or Server) */}
-          {(localError || auth.error) && (
+          {(localError || (auth.error && isSubmitting)) && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {localError || auth.error}
             </Alert>
           )}
 
-          <Grid container spacing={2}>
-            {/* NAME FIELD */}
-            <Grid item xs={12}>
-              <TextField
-                name="name"
-                required
-                fullWidth
-                label="Full Name"
-                autoFocus
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </Grid>
+          <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 2 }}>
+            
+            <TextField
+              name="name"
+              required
+              fullWidth
+              label="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
 
-            {/* EMAIL */}
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                label="Email Address"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </Grid>
+            <TextField
+              required
+              fullWidth
+              label="Email Address"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
 
-            {/* PHONE NUMBER */}
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                label="Phone Number"
-                type="tel" 
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="08012345678"
-              />
-            </Grid>
+            <TextField
+              required
+              fullWidth
+              label="Phone Number"
+              type="tel" 
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
 
-            {/* PASSWORD */}
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                label="Password"
-                type="password"
-                helperText="Passwords must be at least 6 characters."
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </Grid>
-          </Grid>
+            <TextField
+              required
+              fullWidth
+              label="Password"
+              type={showPassword ? "text" : "password"}
+              helperText="Passwords must be at least 6 characters."
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              InputProps={{
+                  endAdornment: (
+                      <InputAdornment position="end">
+                      <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          edge="end"
+                      >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                      </InputAdornment>
+                  ),
+              }}
+            />
+          </Box>
 
-          {/* ✅ 4. Button with Spinner */}
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            disabled={auth.loading} // Disable while loading
+            size="large"
+            disabled={auth.loading}
             sx={{ 
-              mt: 3, 
+              mt: 4, 
               mb: 2, 
               bgcolor: "#6A1B1A", 
               py: 1.5,
@@ -166,23 +188,33 @@ const SignUp = () => {
               "&:hover": { bgcolor: "#8B2323" }
             }}
           >
-            {auth.loading ? (
-              <CircularProgress size={24} sx={{ color: "white" }} />
-            ) : (
-              "Sign Up"
-            )}
+            {auth.loading ? <CircularProgress size={24} sx={{ color: "white" }} /> : "Sign Up"}
           </Button>
           
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            <Typography variant="body2">
-                Already have an account? <span style={{ color: "#6A1B1A", cursor: "pointer", fontWeight: "bold" }} onClick={() => navigate('/signin')}>Sign in</span>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1, textAlign: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+                Already have an account?
             </Typography>
+            <MuiLink 
+                component={Link} 
+                to="/signin" 
+                underline="hover" 
+                sx={{ 
+                    color: "#6A1B1A", 
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                    fontSize: '1rem'
+                }}
+            >
+                Sign In
+            </MuiLink>
           </Box>
 
         </Box>
       </Paper>
       
-      <Box sx={{ mt: 4, display: 'flex', gap: 3 }}>
+      {/* Footer Links */}
+      <Box sx={{ mt: 4, mb: 4, display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
           <Typography variant="caption" color="text.secondary">Conditions of Use</Typography>
           <Typography variant="caption" color="text.secondary">Privacy Notice</Typography>
           <Typography variant="caption" color="text.secondary">Help</Typography>

@@ -1,12 +1,10 @@
 import React from 'react';
 import { PaystackButton } from 'react-paystack';
 import { useDispatch } from 'react-redux';
-import axios from 'axios';
-// import { addOrder } from '../../actions/user.actions'; // Uncomment when you have this action
 
-const PaystackPayment = ({ totalAmount, email, addressId, cartItems }) => {
-    const dispatch = useDispatch();
-    const publicKey = "pk_test_b3a7dc77e175495b76670834c9308dd2e559c5a9"; // YOUR PUBLIC KEY (Safe to be here)
+const PaystackPayment = ({ totalAmount, email, onSuccess }) => {
+    
+    const publicKey = "pk_test_b3a7dc77e175495b76670834c9308dd2e559c5a9"; 
     const amount = totalAmount * 100; // Paystack works in Kobo
 
     const componentProps = {
@@ -17,13 +15,14 @@ const PaystackPayment = ({ totalAmount, email, addressId, cartItems }) => {
             phone: "08012345678",
         },
         publicKey,
-        text: "Pay Now",
+        text: "PAY NOW",
         onSuccess: (reference) => {
-            alert("Payment Successful! Reference: " + reference.reference);
-            // Here you would call dispatch(addOrder(...))
+            console.log("Paystack Modal Success:", reference);
             
-            // Temporary direct call for testing
-            console.log("Payment success", reference);
+            // This triggers the function in your Checkout page
+            if (onSuccess) {
+                onSuccess(reference); 
+            }
         },
         onClose: () => alert("Payment cancelled"),
     };

@@ -9,7 +9,6 @@ export const getAllProducts = () => {
     
             const res = await api.get(`/product/all`);
             
-            console.log("1. RAW PRODUCT RESPONSE:", res);
 
             const data = (res && res.data) ? res.data : res;
 
@@ -17,8 +16,6 @@ export const getAllProducts = () => {
             const products = data.products || (Array.isArray(data) ? data : []);
 
             if (products) {
-                console.log(`3. Found ${products.length} products`);
-                
                 dispatch({
                     type: productConstants.GET_ALL_PRODUCTS_SUCCESS,
                     payload: { products } 

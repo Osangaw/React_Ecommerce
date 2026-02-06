@@ -10,16 +10,11 @@ const initialState = {
 export default (state = initialState, action) => {
   switch (action.type) {
     
-    // ===========================
-    // GET CART (Fixed Empty Cart Bug)
-    // ===========================
     case cartConstant.CART_REQUEST:
       return { ...state, loading: true };
 
     case cartConstant.CART_SUCCESS:
-       // console.log("Reducer CART_SUCCESS Payload:", action.payload.cartItems);
-        
-        return {
+      return {
         ...state,
         cartItems: action.payload.cartItems,
         loading: false,
@@ -33,9 +28,6 @@ export default (state = initialState, action) => {
         updatingCart: false,
       };
 
-    // ===========================
-    // ADD TO CART
-    // ===========================
     case cartConstant.ADD_TO_CART_REQUEST:
       return { ...state, updatingCart: true };
 
@@ -53,16 +45,11 @@ export default (state = initialState, action) => {
         error: action.payload.error,
       };
 
-    // ===========================
-    // UPDATE QUANTITY (Restored Logic)
-    // ===========================
+    
     case cartConstant.UPDATE_CART_ITEM_QUANTITY_REQUEST:
       return { ...state, updatingCart: true };
 
-// ... inside the switch statement
     case cartConstant.UPDATE_CART_ITEM_QUANTITY_SUCCESS: {
-      
-      // 1. If backend sends a full new list, use it (easiest way)
       if (action.payload.cartItems) {
         return {
           ...state,
@@ -72,27 +59,20 @@ export default (state = initialState, action) => {
         };
       }
 
-      // 2. If backend sends nothing, we update the state manually (Optimistic Update)
       const { productId, operation } = action.payload;
       
       const updatedCartItems = state.cartItems.map((item) => {
-        // ⚠️ THE FIX: Handle the fact that your DB uses 'productId' (populated object)
-        // while Redux logic might expect 'product'. We check both.
         const productData = item.productId || item.product;
-        
-        // Safety check to get the ID string
         const itemProductId = productData._id 
             ? productData._id.toString() 
             : productData.toString();
 
-        // If this is the item we clicked, update the quantity
         if (itemProductId === productId.toString()) {
           return {
             ...item,
             quantity: operation === "increment" ? item.quantity + 1 : item.quantity - 1,
           };
         }
-        
         return item;
       });
 
@@ -111,33 +91,28 @@ export default (state = initialState, action) => {
         updatingCart: false,
         error: action.payload.error,
       };
-      case cartConstant.RESET_CART:
-            return {
-                ...state
-            };
-    // ===========================
-    // REMOVE ITEM
-    // ===========================
+
     case cartConstant.REMOVE_FROM_CART_REQUEST:
       return { ...state, updatingCart: true };
 
-    case cartConstant.REMOVE_FROM_CART_SUCCESS:
+      case cartConstant.REMOVE_FROM_CART_SUCCESS:
       return {
         ...state,
-        cartItems: action.payload.cartItems
-          ? action.payload.cartItems
-          : state.cartItems.filter(
-              (item) => item.product._id !== action.payload.productId
-            ),
         updatingCart: false,
+        cartItems: action.payload.items, 
+        error: null,
       };
-
     case cartConstant.REMOVE_FROM_CART_FAILURE:
       return {
         ...state,
         updatingCart: false,
         error: action.payload.error,
       };
+
+    case cartConstant.RESET_CART:
+            return {
+                ...initialState
+            };
 
     default:
       return state;
