@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = "http://localhost:3031"
-//"https://e-commerce-backend-r8j1.onrender.com";
+const BASE_URL = "https://e-commerce-backend-r8j1.onrender.com"
+//"http://localhost:3031" ;
 //"http://localhost:3030";
 
 const api = axios.create({
