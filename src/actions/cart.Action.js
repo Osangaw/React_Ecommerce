@@ -117,7 +117,6 @@ export const addToCart = (product, newQty = 1) => {
   };
 };
 
-// ✅ 3. Remove Item
 export const removeCartItem = (payload) => async (dispatch, getState) => {
   try {
     dispatch({ type: cartConstant.REMOVE_FROM_CART_REQUEST });
@@ -143,7 +142,6 @@ export const removeCartItem = (payload) => async (dispatch, getState) => {
     } else {
       // Guest remove
       const { cart: { cartItems } } = getState(); 
-      // ✅ FIX: Handle if product is object or string ID
       const newCartItems = cartItems.filter(
         (item) => (item.product?._id || item.product) !== payload.productId
       );
@@ -160,7 +158,6 @@ export const removeCartItem = (payload) => async (dispatch, getState) => {
   }
 };
 
-// ✅ 4. Increment Quantity
 export const incrementQuantity = (productId) => async (dispatch, getState) => {
     try {
         const state = getState();
@@ -210,7 +207,6 @@ export const incrementQuantity = (productId) => async (dispatch, getState) => {
     }
 };
 
-// ✅ 5. Decrement Quantity
 export const decrementQuantity = (productId) => async (dispatch, getState) => {
     try {
         const state = getState();

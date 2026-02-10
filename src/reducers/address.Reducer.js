@@ -9,7 +9,6 @@ const initState = {
 export default (state = initState, action) => {
     switch (action.type) {
         
-        // --- GET ADDRESSES ---
         case addressConstants.GET_USER_ADDRESS_REQUEST:
             return {
                 ...state,
@@ -18,7 +17,7 @@ export default (state = initState, action) => {
         case addressConstants.GET_USER_ADDRESS_SUCCESS:
             return {
                 ...state,
-                address: action.payload.address, // Keep this one (it sets the full list)
+                address: action.payload.address,
                 loading: false
             };
         case addressConstants.GET_USER_ADDRESS_FAILURE:
@@ -28,20 +27,15 @@ export default (state = initState, action) => {
                 error: action.payload.error
             };
 
-        // --- ADD ADDRESS ---
         case addressConstants.ADD_USER_ADDRESS_REQUEST:
             return {
                 ...state,
                 loading: true
             };
         case addressConstants.ADD_USER_ADDRESS_SUCCESS:
-            // ✅ FIX: Safely append the new address to the list
-            // We check if state.address is an array first to avoid crashes
             const currentAddresses = Array.isArray(state.address) ? state.address : [];
-            
             return {
                 ...state,
-                // Add the new address to the END of the array
                 address: [...currentAddresses, action.payload.address], 
                 loading: false
             };
@@ -52,7 +46,6 @@ export default (state = initState, action) => {
                 error: action.payload.error
             };
 
-        // --- REMOVE ADDRESS ---
         case addressConstants.REMOVE_USER_ADDRESS_REQUEST:
             return {
                 ...state,
@@ -64,6 +57,25 @@ export default (state = initState, action) => {
                 loading: false
             };
         case addressConstants.REMOVE_USER_ADDRESS_FAILURE:
+            return {
+                ...state,
+                loading: false,
+                error: action.payload.error
+            };
+
+        case addressConstants.UPDATE_USER_ADDRESS_REQUEST:
+            return {
+                ...state,
+                loading: true
+            };
+        case addressConstants.UPDATE_USER_ADDRESS_SUCCESS:
+            return {
+                ...state,
+                loading: false
+                // Note: We don't need to manually update the state here 
+                // because we dispatch getAddress() immediately after success in the action
+            };
+        case addressConstants.UPDATE_USER_ADDRESS_FAILURE:
             return {
                 ...state,
                 loading: false,

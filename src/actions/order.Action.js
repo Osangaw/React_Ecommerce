@@ -173,3 +173,34 @@ export const cancelOrder = (payload) => {
     }
   };
 };
+
+export const getOrderDetails = (payload) => {
+  return async (dispatch, getState) => {
+    dispatch({ type: orderConstants.GET_ORDER_DETAILS_REQUEST });
+    try {
+      const { token } = getState().auth; // Ensure we get token correctly
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      // Payload should be { orderId: "..." }
+      const res = await api.post(`/order/get-order-details`, payload, config);
+
+      if (res.status === 200) {
+        dispatch({
+          type: orderConstants.GET_ORDER_DETAILS_SUCCESS,
+          payload: { order: res.data.order },
+        });
+      }
+    } catch (error) {
+      dispatch({
+        type: orderConstants.GET_ORDER_DETAILS_FAILURE,
+        payload: {
+          error: error.response ? error.response.data.error : error.message,
+        },
+      });
+    }
+  };
+};

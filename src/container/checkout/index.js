@@ -10,6 +10,7 @@ import {
 import { 
   Add as AddIcon,
   DeleteOutline as DeleteIcon,
+  EditOutlined as EditIcon, // ✅ Imported Edit Icon
   LocalShippingOutlined as ShippingIcon,
   Payment as PaymentIcon,
   Lock as LockIcon,
@@ -21,13 +22,12 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-// ✅ IMPORT LAYOUT
 import Layout from '../../components/layout';
-
 import PaystackPayment from '../../components/paystackPayment';
-import { addAddress, deleteAddress, getAddress } from '../../actions/address.Action';
+
+// ✅ Import updateAddress
+import { addAddress, deleteAddress, getAddress, updateAddress } from '../../actions/address.Action';
 import { getCartItems } from '../../actions/cart.Action';
-import { signout } from '../../actions/auth.action'; 
 import { addOrder } from '../../actions/order.Action';
 
 const Checkout = () => {
@@ -45,6 +45,10 @@ const Checkout = () => {
   const [paymentOption, setPaymentOption] = useState("card"); 
   const [open, setOpen] = useState(false);
   
+  // ✅ New State for Editing Logic
+  const [isEditing, setIsEditing] = useState(false);
+  const [editAddressId, setEditAddressId] = useState(null);
+
   const [formData, setFormData] = useState({
       name: "", address: "", city: "", phoneNumber: "", postalCode: "", country: "Nigeria"
   });
@@ -92,15 +96,48 @@ const Checkout = () => {
   }, 0);
 
   // --- HANDLERS ---
+  
+  // ✅ Open Add Modal (Reset Form)
   const handleOpenAdd = () => {
       setFormData({ name: "", address: "", city: "", phoneNumber: "", postalCode: "", country: "Nigeria" });
+      setIsEditing(false);
+      setEditAddressId(null);
       setOpen(true);
   };
-  const handleClose = () => setOpen(false);
+
+  // ✅ Open Edit Modal (Pre-fill Form)
+  const handleOpenEdit = (addr, e) => {
+      e.stopPropagation(); // Prevent selecting the card when clicking edit
+      setFormData({
+          name: addr.name,
+          address: addr.address,
+          city: addr.city,
+          phoneNumber: addr.phoneNumber,
+          postalCode: addr.postalCode,
+          country: addr.country || "Nigeria"
+      });
+      setIsEditing(true);
+      setEditAddressId(addr._id);
+      setOpen(true);
+  };
+
+  const handleClose = () => {
+      setOpen(false);
+      setIsEditing(false); // Reset mode on close
+  };
+
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   
+  // ✅ Handle Save (Add or Update)
   const handleSaveAddress = () => {
-      dispatch(addAddress(formData));
+      if (isEditing) {
+          // Dispatch Update Action with ID
+          const payload = { ...formData, _id: editAddressId };
+          dispatch(updateAddress(payload));
+      } else {
+          // Dispatch Add Action
+          dispatch(addAddress(formData));
+      }
       setOpen(false);
   };
   
@@ -163,8 +200,6 @@ const Checkout = () => {
               status: "success"
           }
       };
-
-      console.log("Dispatching Paystack Order Payload:", payload);
       dispatch(addOrder(payload));
   };
 
@@ -181,7 +216,6 @@ const Checkout = () => {
   const steps = ['Shipping', 'Payment', 'Review'];
 
   return (
-    // ✅ WRAPPED IN LAYOUT (This applies the standard header)
     <Layout>
         <Box sx={{ minHeight: '100vh', bgcolor: '#F4F7F9', pb: 8, pt: 4 }}>
             <Container maxWidth="lg">
@@ -237,10 +271,21 @@ const Checkout = () => {
                                                 <PhoneIcon sx={{ fontSize: 16, color: '#999' }} />
                                                 <Typography variant="body2" fontWeight="600">{addr.phoneNumber}</Typography>
                                             </Box>
-                                            <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed #EEE', display: 'flex', justifyContent: 'flex-end' }}>
+                                            
+                                            {/* ✅ EDIT & DELETE BUTTONS */}
+                                            <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed #EEE', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                                
+                                                {/* Edit Button */}
+                                                <Tooltip title="Edit Address">
+                                                    <IconButton size="small" onClick={(e) => handleOpenEdit(addr, e)}>
+                                                        <EditIcon fontSize="small" sx={{ color: '#1976D2' }} />
+                                                    </IconButton>
+                                                </Tooltip>
+
+                                                {/* Delete Button */}
                                                 <Tooltip title="Delete Address">
                                                     <IconButton size="small" onClick={(e) => handleDeleteAddress(addr._id, e)}>
-                                                        <DeleteIcon fontSize="small" />
+                                                        <DeleteIcon fontSize="small" sx={{ color: '#D32F2F' }} />
                                                     </IconButton>
                                                 </Tooltip>
                                             </Box>
@@ -248,6 +293,8 @@ const Checkout = () => {
                                     </Grid>
                                 )
                             })}
+                            
+                            {/* ADD BUTTON CARD */}
                             <Grid item xs={12} sm={6}>
                                 <Button onClick={handleOpenAdd} sx={{ height: '100%', width: '100%', minHeight: '180px', border: '2px dashed #CFD8DC', borderRadius: 3, display: 'flex', flexDirection: 'column', gap: 1, color: '#78909C', bgcolor: '#FAFAFA', textTransform: 'none' }}>
                                     <AddIcon sx={{ fontSize: 40 }} />
@@ -271,20 +318,12 @@ const Checkout = () => {
                                 <Box 
                                     onClick={() => setPaymentOption("card")}
                                     sx={{ 
-                                        p: 2, 
-                                        cursor: 'pointer',
-                                        borderBottom: '1px solid #E0E0E0',
+                                        p: 2, cursor: 'pointer', borderBottom: '1px solid #E0E0E0',
                                         bgcolor: paymentOption === 'card' ? 'rgba(106, 27, 26, 0.04)' : 'white',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        transition: 'all 0.2s'
+                                        display: 'flex', alignItems: 'center', transition: 'all 0.2s'
                                     }}
                                 >
-                                    <Radio 
-                                        checked={paymentOption === 'card'}
-                                        value="card" 
-                                        sx={{ color: '#6A1B1A', '&.Mui-checked': { color: '#6A1B1A' } }} 
-                                    />
+                                    <Radio checked={paymentOption === 'card'} value="card" sx={{ color: '#6A1B1A', '&.Mui-checked': { color: '#6A1B1A' } }} />
                                     <Box sx={{ ml: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
                                         <CreditCardIcon color="primary" />
                                         <Box>
@@ -298,19 +337,12 @@ const Checkout = () => {
                                 <Box 
                                     onClick={() => setPaymentOption("cod")}
                                     sx={{ 
-                                        p: 2, 
-                                        cursor: 'pointer',
+                                        p: 2, cursor: 'pointer',
                                         bgcolor: paymentOption === 'cod' ? 'rgba(106, 27, 26, 0.04)' : 'white',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        transition: 'all 0.2s'
+                                        display: 'flex', alignItems: 'center', transition: 'all 0.2s'
                                     }}
                                 >
-                                    <Radio 
-                                        checked={paymentOption === 'cod'}
-                                        value="cod" 
-                                        sx={{ color: '#6A1B1A', '&.Mui-checked': { color: '#6A1B1A' } }} 
-                                    />
+                                    <Radio checked={paymentOption === 'cod'} value="cod" sx={{ color: '#6A1B1A', '&.Mui-checked': { color: '#6A1B1A' } }} />
                                     <Box sx={{ ml: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
                                         <MoneyIcon color="success" />
                                         <Box>
@@ -376,12 +408,7 @@ const Checkout = () => {
                                         fullWidth
                                         size="large"
                                         onClick={onConfirmCOD}
-                                        sx={{ 
-                                            bgcolor: '#2E7D32', 
-                                            fontWeight: 'bold', 
-                                            py: 1.5,
-                                            '&:hover': { bgcolor: '#1B5E20' }
-                                        }}
+                                        sx={{ bgcolor: '#2E7D32', fontWeight: 'bold', py: 1.5, '&:hover': { bgcolor: '#1B5E20' } }}
                                     >
                                         Confirm COD Order
                                     </Button>
@@ -394,9 +421,11 @@ const Checkout = () => {
                 </Grid>
             </Container>
 
-            {/* DIALOG: ADD ADDRESS */}
+            {/* DIALOG: ADD / EDIT ADDRESS */}
             <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 1 } }}>
-                <DialogTitle fontWeight="800" sx={{ pb: 1 }}>Add New Address</DialogTitle>
+                <DialogTitle fontWeight="800" sx={{ pb: 1 }}>
+                    {isEditing ? "Edit Address" : "Add New Address"}
+                </DialogTitle>
                 <DialogContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                         <TextField label="Label (e.g. Home)" name="name" fullWidth size="small" value={formData.name} onChange={handleChange} />
@@ -410,7 +439,9 @@ const Checkout = () => {
                 </DialogContent>
                 <DialogActions sx={{ p: 3, pt: 1 }}>
                     <Button onClick={handleClose} sx={{ color: '#666' }}>Cancel</Button>
-                    <Button onClick={handleSaveAddress} variant="contained" sx={{ bgcolor: '#6A1B1A', '&:hover': { bgcolor: '#8B2323' } }}>Save Address</Button>
+                    <Button onClick={handleSaveAddress} variant="contained" sx={{ bgcolor: '#6A1B1A', '&:hover': { bgcolor: '#8B2323' } }}>
+                        {isEditing ? "Update Address" : "Save Address"}
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Box>

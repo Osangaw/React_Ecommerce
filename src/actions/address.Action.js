@@ -24,7 +24,6 @@ export const getAddress = () => {
                     payload: { address: addressList }
                 });
             }
-            console.log("addresses;",res.data);
             
         } catch (error) {
             console.log("Get Address Error:", error);
@@ -76,14 +75,12 @@ export const deleteAddress = (payload) => {
     const auth = getState().auth    
     const { token } = getState().auth; 
     const  userId  = auth.user._id;
-    console.log("userId:", userId);
-    
     try {
       const res = await api.delete("/address/delete", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        data: { payload, userId } // ⚠️ IMPORTANT: Body goes here for DELETE requests
+        data: { payload, userId } 
       });
 
       if (res.status === 202 || res.status === 200) {
@@ -94,6 +91,42 @@ export const deleteAddress = (payload) => {
       console.log(error);
       dispatch({
         type: addressConstants.REMOVE_USER_ADDRESS_FAILURE,
+        payload: { error: error.response?.data?.message || error.message },
+      });
+    }
+  };
+};
+
+export const updateAddress = (form) => {
+  return async (dispatch, getState) => {
+    dispatch({ type: addressConstants.UPDATE_USER_ADDRESS_REQUEST });
+    
+    try {
+      const { token } = getState().auth;
+      
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
+      const res = await api.post(
+        "/address/edit", 
+        form, 
+        config
+      );
+
+      if (res.status === 201 || res.status === 200) {
+        dispatch({ 
+            type: addressConstants.UPDATE_USER_ADDRESS_SUCCESS 
+        });
+        
+        dispatch(getAddress()); 
+      }
+    } catch (error) {
+      console.log("Update Address Error:", error);
+      dispatch({
+        type: addressConstants.UPDATE_USER_ADDRESS_FAILURE,
         payload: { error: error.response?.data?.message || error.message },
       });
     }

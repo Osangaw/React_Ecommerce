@@ -68,7 +68,6 @@ const Layout = ({ children }) => {
     if (e.key === "Enter" || e.type === "click") {
       if (searchTerm.trim()) {
         dispatch(searchProducts(searchTerm));
-        // No need to navigate if we are already on home, but safe to keep
         navigate('/'); 
       }
     }
@@ -126,7 +125,7 @@ const Layout = ({ children }) => {
             Store
         </Typography>
 
-        {/* 2. SEARCH BAR (Conditionally Rendered) */}
+        {/* 2. SEARCH BAR */}
         {showSearch && (
             <Box
             sx={{
@@ -157,7 +156,7 @@ const Layout = ({ children }) => {
         {/* 3. RIGHT SIDE ICONS */}
         <Box sx={{ display: "flex", gap: { xs: 1, md: 3 }, alignItems: "center" }}>
 
-          {/* Cart */}
+          {/* Cart Icon (Only if not admin) */}
           {!isAdmin && (
             <Typography
                 sx={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 1, fontWeight: 500 }}
@@ -170,44 +169,77 @@ const Layout = ({ children }) => {
             </Typography>
           )}
 
-          {/* Auth */}
-          {auth.authenticate ? (
-            <>
-                <Tooltip title="Account settings">
-                    <IconButton onClick={handleMenuClick} size="small" sx={{ ml: 0 }}>
-                        <Avatar sx={{ width: 32, height: 32, bgcolor: isAdmin ? "#6A1B1A" : "#1976d2", fontSize: 14 }}>
-                            {auth.user?.name ? auth.user.name.charAt(0).toUpperCase() : "U"}
-                        </Avatar>
-                    </IconButton>
-                </Tooltip>
+          {/* ✅ UNIFIED AUTH DROPDOWN (Works for both Guest & Logged In users) */}
+          <Box>
+            <Tooltip title="Account settings">
+                <IconButton onClick={handleMenuClick} size="small" sx={{ ml: 0 }}>
+                    <Avatar sx={{ 
+                        width: 32, 
+                        height: 32, 
+                        // Blue/Red for user/admin, Gray for guest
+                        bgcolor: auth.authenticate ? (isAdmin ? "#6A1B1A" : "#1976d2") : "#bdbdbd", 
+                        fontSize: 14 
+                    }}>
+                        {auth.authenticate && auth.user?.name 
+                            ? auth.user.name.charAt(0).toUpperCase() 
+                            : <PersonIcon fontSize="small" /> 
+                        }
+                    </Avatar>
+                </IconButton>
+            </Tooltip>
 
-                <Menu
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleMenuClose}
-                    onClick={handleMenuClose}
-                    PaperProps={{ elevation: 0, sx: { filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))', mt: 1.5 } }}
-                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                >
-                    <MenuItem onClick={() => handleNavigate('/profile')}><ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon> Profile</MenuItem>
-                    {!isAdmin && <MenuItem onClick={() => handleNavigate('/orders')}><ListItemIcon><ShoppingBagIcon fontSize="small" /></ListItemIcon> My Orders</MenuItem>}
-                    {isAdmin && (
-                        <div>
-                            <MenuItem onClick={() => handleNavigate('/admin/dashboard')}><ListItemIcon><DashboardIcon fontSize="small" /></ListItemIcon> Dashboard</MenuItem>
-                            <MenuItem onClick={() => handleNavigate('/product/add')}><ListItemIcon><AddCircleIcon fontSize="small" /></ListItemIcon> Add Product</MenuItem>
-                        </div>
-                    )}
-                    <Divider />
-                    <MenuItem onClick={handleLogout}><ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon> Logout</MenuItem>
-                </Menu>
-            </>
-          ) : (
-            <Box sx={{ display: 'flex', gap: 1 }}>
-                <Typography sx={{ cursor: "pointer", fontWeight: 500, fontSize: '0.9rem', display: { xs: "none", sm: "block" } }} onClick={() => navigate("/signup")}>Sign Up</Typography>
-                <Typography sx={{ cursor: "pointer", fontWeight: 500, fontSize: '0.9rem' }} onClick={() => navigate("/signin")}>Login <LockIcon sx={{ verticalAlign: "middle", ml: 0.5, fontSize: 16 }} /></Typography>
-            </Box>
-          )}
+            <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleMenuClose}
+                onClick={handleMenuClose}
+                PaperProps={{ elevation: 0, sx: { filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))', mt: 1.5 } }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+                {auth.authenticate ? (
+                    <Box>
+                        <MenuItem onClick={() => handleNavigate('/profile')}>
+                            <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon> Profile
+                        </MenuItem>
+                        
+                        {!isAdmin && (
+                            <MenuItem onClick={() => handleNavigate('/orders')}>
+                                <ListItemIcon><ShoppingBagIcon fontSize="small" /></ListItemIcon> My Orders
+                            </MenuItem>
+                        )}
+                        
+                        {isAdmin && (
+                            <Box>
+                                <MenuItem onClick={() => handleNavigate('/admin/dashboard')}>
+                                    <ListItemIcon><DashboardIcon fontSize="small" /></ListItemIcon> Dashboard
+                                </MenuItem>
+                                <MenuItem onClick={() => handleNavigate('/product/add')}>
+                                    <ListItemIcon><AddCircleIcon fontSize="small" /></ListItemIcon> Add Product
+                                </MenuItem>
+                            </Box>
+                        )}
+                        
+                        <Divider />
+                        
+                        <MenuItem onClick={handleLogout}>
+                            <ListItemIcon><LogoutIcon fontSize="small" /></ListItemIcon> Logout
+                        </MenuItem>
+                    </Box>
+                ) : (
+                    // --- GUEST MENU (Login/Signup) ---
+                    <Box>
+                        <MenuItem onClick={() => handleNavigate("/signin")}>
+                            <ListItemIcon><LockIcon fontSize="small" /></ListItemIcon> Login
+                        </MenuItem>
+                        <MenuItem onClick={() => handleNavigate("/signup")}>
+                            <ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon> Sign Up
+                        </MenuItem>
+                    </Box>
+                )}
+            </Menu>
+          </Box>
+
         </Box>
       </Box>
 
